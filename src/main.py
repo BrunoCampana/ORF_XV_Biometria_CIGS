@@ -20,9 +20,10 @@ $$\   $$ |$$ | \____$$\       $$\   $$ |$$ |      $$ |    \$$$  /  $$ |  $$ |
                                                                              """)
 
 def printOptions():
-    print ("1 - Registrar entrada ou saída.")
+    print ("1 - Registrar entrada ou saída por biometria.")
     print ("2 - Cadastrar novo usuário")
-    print ("3 - Sair do sistema.")
+    print ("3 - Liberar entrada ou saída manualmente")
+    print ("4 - Sair do sistema.")
 
 def tratar_opcao(option):
     global done
@@ -31,6 +32,8 @@ def tratar_opcao(option):
     elif (option == "2"):
         cadastrar_novo_usuario()
     elif (option == "3"):
+        liberar_entrada_saida_manualmente()
+    elif (option == "4"):
         done = True
     else:
         print ("[!] Opção inválida.")

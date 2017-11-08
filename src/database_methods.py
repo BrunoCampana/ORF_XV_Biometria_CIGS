@@ -1,5 +1,7 @@
 import mysql.connector
 import datetime
+import getpass
+import hashlib
 
 from biometria import *
 from models import *
@@ -122,14 +124,7 @@ def buscar_ultimo_tipo_evento_usuario(id_usuario):
         ultimo_tipo_evento = row[0]
     return ultimo_tipo_evento
 
-def registrar_entrada_saida():
-    usuario = buscar_usuario_por_biometria()
-    if not usuario.id:
-        print ("Nenhum usuario encontrado")
-        return None
-    print ("Nome encontrado : " + usuario.nome)
-    ultimo_tipo_evento = buscar_ultimo_tipo_evento_usuario(usuario.id)
-    #Se o último evento foi uma entrada, registrar saída da selva
+def criar_novo_evento(ultimo_tipo_evento,usuario_id):
     if ultimo_tipo_evento == 1:
         tipo = 2
         print ("Evento: " + tipo_evento_dict[tipo])
@@ -140,12 +135,25 @@ def registrar_entrada_saida():
     else:
         #Outros tipos podem ser inseridos aqui além de entrada/saída (trabalho futuro)
         pass
+    print ("Hora do evento")
 
     data_atual = datetime.datetime.now()
+    print ("Data e horário: " + data_atual.strftime('%d-%m-%Y %H:%M:%S'))
     evento = Evento()
-    evento.id_usuario = usuario.id
+    evento.id_usuario = usuario_id
     evento.id_tipo = tipo
     evento.data = data_atual.strftime('%Y-%m-%d %H:%M:%S')
+    return evento
+
+def registrar_entrada_saida():
+    usuario = buscar_usuario_por_biometria()
+    if not usuario.id:
+        print ("Nenhum usuario encontrado")
+        return None
+    print ("Nome encontrado : " + usuario.nome)
+    ultimo_tipo_evento = buscar_ultimo_tipo_evento_usuario(usuario.id)
+    #Se o último evento foi uma entrada, registrar saída da selva
+    evento = criar_novo_evento(ultimo_tipo_evento,usuario.id)
     registrar_evento_no_banco_de_dados(evento)
 
 #Métodos que são chamados na inicialização do sistema para obter os postos e graduações
@@ -168,3 +176,47 @@ def obter_tipos_eventos_e_criar_dicionario():
         tipo_evento_dict[id] = tipo
     cursor.close()
     cnx.close()
+
+def buscar_usuario_manualmente():
+    query = '%' + str.upper(input("Nome parcial do usuário:")) + '%'
+
+    cnx = get_new_connection()
+    cursor = cnx.cursor()
+    query_busca_operador = ("SELECT id,nome,Cod_PG FROM Usuario "
+                        "WHERE UPPER(nome) LIKE %s ")
+    parametros_query = (query,)
+    cursor.execute(query_busca_operador,parametros_query)
+    print ("Usuários encontrados")
+    for (id,nome,Cod_PG) in cursor:
+        print (str(id) + " - " + nome)
+    escolha = input("ID do usuario para liberar:")
+    ultimo_tipo_evento = buscar_ultimo_tipo_evento_usuario(escolha)
+    evento = criar_novo_evento(ultimo_tipo_evento,escolha)
+    registrar_evento_no_banco_de_dados(evento)
+
+#Para liberar manualmente, é necessário autenticar o operador
+def autenticar_operador(login,senha):
+    cnx = get_new_connection()
+    cursor = cnx.cursor()
+    query_busca_operador = ("SELECT * FROM admins "
+                "WHERE usuario = %s AND senha = %s LIMIT 1")
+    hash_senha = hashlib.sha256(senha.encode('utf-8')).hexdigest()
+    parametros_query = (login ,hash_senha)
+    cursor.execute(query_busca_operador,parametros_query)
+
+    #Retorna verdadeiro se pelo menos um resultado for encontrado
+    row = cursor.fetchone()
+    if row is None:
+        return False
+    else:
+        return True
+
+def liberar_entrada_saida_manualmente():
+    print ("[!] É necessária a autorização para acesso a esta funcionalidade")
+    login = input("Login:")
+    senha = getpass.getpass("Senha:")
+    if (autenticar_operador(login,senha) is False):
+        print ("[!] Operador não encontrado.")
+        return None
+    print ("Autenticação de operador bem-sucedida.")
+    buscar_usuario_manualmente()
