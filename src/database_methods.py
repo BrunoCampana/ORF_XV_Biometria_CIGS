@@ -25,6 +25,9 @@ posto_graduacao_dict = {}
 #Tipos
 tipo_evento_dict = {}
 
+missoes_dict = {}
+
+
 
 def get_new_connection():
     try:
@@ -96,10 +99,10 @@ def registrar_evento_no_banco_de_dados(evento):
     cnx = get_new_connection()
     cursor = cnx.cursor()
     query_cadastro_evento = ("INSERT INTO Evento "
-            "(id_usuario, id_tipo, data) "
-            "VALUES (%s, %s, %s)")
+            "(id_usuario, id_tipo, cod_missao, data, obs) "
+            "VALUES (%s, %s, %s, %s, %s)")
     #O valor que deve ser salvo para a biometria do usuário é acessado através do atributo RAW (binário)
-    parametros_query = (evento.id_usuario,evento.id_tipo,evento.data)
+    parametros_query = (evento.id_usuario,evento.id_tipo,evento.id_missao, evento.data,evento.observacoes)
     cursor.execute(query_cadastro_evento, parametros_query)
     cnx.commit()
     cursor.close()
@@ -135,7 +138,6 @@ def criar_novo_evento(ultimo_tipo_evento,usuario_id):
     else:
         #Outros tipos podem ser inseridos aqui além de entrada/saída (trabalho futuro)
         pass
-    print ("Hora do evento")
 
     data_atual = datetime.datetime.now()
     print ("Data e horário: " + data_atual.strftime('%d-%m-%Y %H:%M:%S'))
@@ -145,16 +147,21 @@ def criar_novo_evento(ultimo_tipo_evento,usuario_id):
     evento.data = data_atual.strftime('%Y-%m-%d %H:%M:%S')
     return evento
 
-def registrar_entrada_saida():
+def registrar_entrada_saida(callback=None):
     usuario = buscar_usuario_por_biometria()
+    #ID 0 : nenhum usuario encontrado
     if not usuario.id:
         print ("Nenhum usuario encontrado")
-        return None
-    print ("Nome encontrado : " + usuario.nome)
-    ultimo_tipo_evento = buscar_ultimo_tipo_evento_usuario(usuario.id)
-    #Se o último evento foi uma entrada, registrar saída da selva
-    evento = criar_novo_evento(ultimo_tipo_evento,usuario.id)
-    registrar_evento_no_banco_de_dados(evento)
+        evento = None
+    else:
+        print ("Nome encontrado : " + usuario.nome)
+        ultimo_tipo_evento = buscar_ultimo_tipo_evento_usuario(usuario.id)
+        #Se o último evento foi uma entrada, registrar saída da selva
+        evento = criar_novo_evento(ultimo_tipo_evento,usuario.id)
+        #registrar_evento_no_banco_de_dados(evento)
+    if callback is not None:
+        callback(usuario,evento)
+    return usuario
 
 #Métodos que são chamados na inicialização do sistema para obter os postos e graduações
 def obter_postos_graduacoes_e_criar_dicionario():
@@ -174,6 +181,16 @@ def obter_tipos_eventos_e_criar_dicionario():
     cursor.execute(query_busca_tipos)
     for (id,tipo) in cursor:
         tipo_evento_dict[id] = tipo
+    cursor.close()
+    cnx.close()
+
+def obter_tipos_missoes_e_criar_dicionario():
+    cnx = get_new_connection()
+    cursor = cnx.cursor()
+    query_busca_missoes = ("SELECT * FROM missao")
+    cursor.execute(query_busca_missoes)
+    for (id,nome) in cursor:
+        missoes_dict[nome] = id
     cursor.close()
     cnx.close()
 

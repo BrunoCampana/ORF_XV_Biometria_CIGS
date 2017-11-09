@@ -11,6 +11,8 @@ class Evento:
         self.id = 0
         self.id_usuario = 0
         self.id_tipo = 0
+        self.id_missao = 0
+        self.observacoes = 'Sem observacoes'
         self.data = None
 
 #Os tipos possíveis até agora são : ENTRADA (1) / SAÍDA (2)
@@ -20,6 +22,11 @@ class Tipo:
         self.tipo = 'Sem Descrição'
 
 class Posto_Graduaçao:
-        def __init__(self):
-            self.id = 0
-            self.PG = 'Sem Descrição'
+    def __init__(self):
+        self.id = 0
+        self.PG = 'Sem Descrição'
+
+class Missao:
+    def __init__(self):
+        self.id = 0
+        self.descricao = 'Sem Descrição'

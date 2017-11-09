@@ -23,7 +23,7 @@ def comparar_digitais(dig1,dig2):
     return sdk.CIS_SDK_Biometrico_CompararDigital(dig1,dig2)
 
 def cancelar_leitura():
-    return sdk.CIS_SDK_CancelarLeitura()
+    return sdk.CIS_SDK_Biometrico_CancelarLeitura()
 
 def verificar_retorno(iRetorno):
     return verificar_retorno_func(iRetorno)

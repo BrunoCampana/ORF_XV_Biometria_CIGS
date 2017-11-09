@@ -1,5 +1,8 @@
 from database_methods import *
 from biometria import iniciar_leitor,finalizar_leitor
+from gui import main_loop
+
+import sys
 
 #Variável global que indica o encerramento do programa
 done = False
@@ -43,6 +46,8 @@ def main():
     # e armazená-las em um dicionário global
     obter_postos_graduacoes_e_criar_dicionario()
     obter_tipos_eventos_e_criar_dicionario()
+    obter_missoes_e_criar_dicionario()
+
     iniciar_leitor()
     printASCIIArt()
     # Loop principal
@@ -55,4 +60,5 @@ def main():
     finalizar_leitor()
 
 if __name__ == "__main__":
-    main()
+    #main()
+    main_loop()
