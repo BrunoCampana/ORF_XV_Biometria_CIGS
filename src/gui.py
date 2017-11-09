@@ -19,19 +19,25 @@ class main_window():
                                 command = self.comando_registrar_entrada_saida )
                 self.botao_registrar_entrada_saida.pack()
 
-                self.btn2 = Button(master , text = "Cadastrar novo usuário" , command = self.command2 )
-                self.btn2.pack()
+                self.botao_cadastrar_novo_usuario = Button(master ,
+                                                            text="Cadastrar novo usuário",
+                                                            command = self.comando_cadastrar_novo_usuario )
+                self.botao_cadastrar_novo_usuario.pack()
 
-                self.btn3 = Button(master , text = "Liberar entrada ou saída manualmente" , command = self.command3 )
-                self.btn3.pack()
+                self.botao_liberar_entrada_saida_manualmente = Button(master ,
+                                    text = "Liberar entrada ou saída manualmente" ,
+                                    command = self.comando_liberar_entrada_saida_manualmente )
+                self.botao_liberar_entrada_saida_manualmente.pack()
 
-                self.btn4 = Button(master , text = "Sair do sistema" , command = self.command4 )
-                self.btn4.pack()
+                self.botao_sair_do_sistema = Button(master ,
+                                                    text = "Sair do sistema" ,
+                                                    command = self.comando_sair_do_sistema )
+                self.botao_sair_do_sistema.pack()
 
                 self.frame.pack()
 
         def comando_registrar_entrada_saida(self):
-                #Verifica se já há uma janela aberta
+                #Verifica se já há uma janela aberta, pois o leitor poderia já estar acionado
                 if isinstance(self.app,ler_digital_window):
                     self.app.finalizar_janela()
                     self.thread_leitura.join()
@@ -41,15 +47,17 @@ class main_window():
                                                     kwargs={'callback': self.app.retorno_busca_biometrica})
                 self.thread_leitura.start()
 
-        def command2(self):
+        def comando_cadastrar_novo_usuario(self):
+                if isinstance(self.app,cadastrar_novo_usuario_window):
+                    self.app.finalizar_janela()
                 self.newWindow = tk.Toplevel(self.master)
-                self.app = windowclass2(self.newWindow)
+                self.app = cadastrar_novo_usuario_window(self.newWindow)
 
-        def command3(self):
+        def comando_liberar_entrada_saida_manualmente(self):
                 self.newWindow = tk.Toplevel(self.master)
                 self.app = windowclass3(self.newWindow)
 
-        def command4(self):
+        def comando_sair_do_sistema(self):
                 self.master.destroy()
 
 class ler_digital_window():
@@ -74,7 +82,7 @@ class ler_digital_window():
         def not_found(self):
                 messagebox.showinfo("Aviso", "Usuário não encontrado", icon="warning")
 
-
+        #Método que funciona como uma forma de CALLBACK da thread que realiza a leitura da impressão digital
         def retorno_busca_biometrica(self,usuario,evento):
             if self.isDead == True:
                 return
@@ -95,7 +103,7 @@ class selecionar_missao_window():
         self.master.title("Cadastro de Evento")
         # Converter do formato do MySQL para o formato brasileiro
         data_obj = datetime.datetime.strptime(evento.data, "%Y-%m-%d %H:%M:%S")
-        string_label = "Nome: " + usuario.nome + \
+        string_label = id_posto_graduacao_dict[usuario.Cod_PG] + " " + usuario.nome + \
                         "\nEvento: " + tipo_evento_dict[evento.id_tipo] + \
                         "\nHorário: " + data_obj.strftime('%d-%m-%Y %H:%M:%S')
 
@@ -107,7 +115,7 @@ class selecionar_missao_window():
         default_str = list(missoes_dict.keys())[0]
         self.variable.set(default_str)
         self.opt = default_str
-        self.missaoOPT = tk.OptionMenu(master, self.variable, *missoes_dict,command=self.func)
+        self.missaoOPT = tk.OptionMenu(master, self.variable, *missoes_dict,command=self.mudanca_opcao_selecao)
         self.missaoOPT.pack()
         self.OBSlbl = Label(master, text="Observações:")
         self.OBS = Entry(master)
@@ -118,7 +126,7 @@ class selecionar_missao_window():
         self.registrar_evento_button.pack()
         self.frame.pack()
 
-    def func(self,value):
+    def mudanca_opcao_selecao(self,value):
         self.opt = value
 
     def comando_registrar_evento(self):
@@ -131,118 +139,44 @@ class selecionar_missao_window():
         self.master.destroy()
         self.callback()
 
-class windowclass1():
+class cadastrar_novo_usuario_window():
         def __init__(self , master):
-                self.username = ("goi") #Pegar do BD
-                self.password = ("123")
                 self.master = master
                 self.frame = tk.Frame(master)
-                self.master.title("Login")
-                self.username_text = Label(master, text="Usuário:")
-                self.username_guess = Entry(master)
-                self.password_text = Label(master, text="Senha:")
-                self.password_guess = Entry(master, show="*")
-                self.quitButton = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.close_window)
-                self.attempt_login = tk.Button(self.frame, text='Login', width = 25, command= self.try_login)
-                self.username_text.pack()
-                self.username_guess.pack()
-                self.password_text.pack()
-                self.password_guess.pack()
-                self.quitButton.pack()
-                self.attempt_login.pack()
+                master.title("Cadastro de novo usuario")
+                self.usernamelbl = Label(master, text="Nome:")
+                self.username = Entry(master)
+                self.variable = tk.StringVar(master)
+                # Como opção DEFAULT, o primeiro campo do dicionário
+                default_str = list(posto_graduacao_dict.keys())[0]
+                self.variable.set(default_str)
+                self.opt = default_str
+                self.PGopt = tk.OptionMenu(master, self.variable, *posto_graduacao_dict,command=self.mudanca_opcao_selecao)
+                self.PGopt.pack()
+                self.OMlbl = Label(master, text="OM:")
+                self.OM = Entry(master)
+                self.cadastrar_button = tk.Button(self.frame, text = 'Cadastrar', width = 25 , command = self.ler_digital_novo_usuario)
+                self.cancel_button = tk.Button(self.frame, text='Cancelar', width = 25, command= self.finalizar_janela)
+
+
+                self.usernamelbl.pack()
+                self.username.pack()
+                self.OMlbl.pack()
+                self.OM.pack()
+                self.cadastrar_button.pack()
+                self.cancel_button.pack()
                 self.frame.pack()
 
-        def try_login(self):
-            #self.username = ("goi")
-            #self.password = ("123")
-                if self.username_guess.get() == self.username:
-                    self.newWindow = tk.Toplevel(self.master)
-                    self.app = windowclass4(self.newWindow)
-                else:
-                    messagebox.showinfo("Erro", "Não Reconhecido", icon="warning")
 
-        def close_window(self):
+        def mudanca_opcao_selecao(self,value):
+            self.opt = value
+
+        def ler_digital_novo_usuario(self):
+                pass
+
+
+        def finalizar_janela(self):
                 self.master.destroy()
-
-class MenuOpcoes(tk.OptionMenu):
-        def __init__(self, master, status, *options):
-                self.var = StringVar(master)
-                self.var.set(status)
-                OptionMenu.__init__(self, master, self.var, *options)
-
-class windowclass2():
-        def __init__(self , master):
-                self.master = master
-                self.frame = tk.Frame(master)
-                master.title("Cadastro")
-                # Cria o label e a caixa de texto para o Nome
-                self.username_text = Label(master, text="Nome:")
-                self.username_guess = Entry(master)
-                self.posto = Label(master, text="Posto:")
-                self.mymenu1 = MyOptionMenu(self.frame, 'Select status', 'General','Coronel','Tenente-Coronel', 'Major', 'Capitão', '1º Tenente', '2º Tenente', 'Cadete', 'Sargento', 'Soldado')
-                self.password_text = Label(master, text="OM:")
-                self.password_guess = Entry(master)
-                self.quitButton = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.close_window)
-                self.attempt_login = tk.Button(self.frame, text='Cadastrar', width = 25, command= self.try_login)
-                self.username_text.pack()
-                self.username_guess.pack()
-
-                self.mymenu1.pack()
-                self.password_text.pack()
-                self.password_guess.pack()
-                self.posto.pack()
-                self.quitButton.pack()
-                self.attempt_login.pack()
-                self.frame.pack()
-
-       # def MyOptionMenu(OptionMenu):
-        #        self.var = StringVar(master)
-         #       self.var.set(status)
-          #      OptionMenu.__init__(self, master, self.var, *options)
-
-        def try_login(self):
-                self.newWindow = tk.Toplevel(self.master)
-                self.app = windowclass3(self.newWindow)
-
-
-        def close_window(self):
-                self.master.destroy()
-
-
-class windowclass4():
-        def __init__(self , master):
-                self.master = master
-                self.frame = tk.Frame(master)
-                master.title("Cadastre Evento")
-                self.lbl = Label(master , text = "Escolher Militar:")
-                self.mymenu1 = MyOptionMenu(self.frame, 'Select status', 'mickey', 'donald', 'luizinho', 'jorginho')
-                self.lbl.pack()
-
-                self.mymenu1.pack()
-
-                self.quitButton = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.close_window)
-                self.attempt_login = tk.Button(self.frame, text='Cadastrar Evento do Militar', width = 25, command= self.try_login)
-                self.quitButton.pack()
-                self.attempt_login.pack()
-                self.frame.pack()
-
-        def try_login(self):
-                messagebox.showinfo("Sucesso", "Evento Cadastrado", icon="info")
-
-        def close_window(self):
-                self.master.destroy()
-
-
-class windowclass5():
-        def __init__(self , master):
-                self.master = master
-                self.frame = tk.Frame(master)
-                master.title("Buscar")
-                self.username_text = Label(master, text="Buscar:")
-                self.username_text.pack()
-                self.mymenu1 = MyOptionMenu(self.frame, 'Select status', 'mickey', 'donald', 'luizinho', 'jorginho')
-                self.mymenu1.pack()
-                self.frame.pack()
 
 
 def main_loop():

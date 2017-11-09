@@ -16,18 +16,18 @@ config = {
   'database': 'Biometria_CIGS',
 }
 
+#UTILIDADES
+
 #Buffer que armazena cada digital lida. Este construtor é necessário para suportar a função nativa em C
 digital_features = create_string_buffer(tamanho_buffer_digital)
-
-# Dicionários globais mapeando IDs para strings
-#P/G
+# Dicionários globais mapeando strings para IDs
+#P/G e Missões
 posto_graduacao_dict = {}
-#Tipos
-tipo_evento_dict = {}
-
 missoes_dict = {}
-
-
+# Dicionários globais mapeando IDs para strings
+#P/G e Tipos de eventos
+id_posto_graduacao_dict = {}
+tipo_evento_dict = {}
 
 def get_new_connection():
     try:
@@ -170,7 +170,8 @@ def obter_postos_graduacoes_e_criar_dicionario():
     query_busca_pgs = ("SELECT * FROM Posto_Graduacao")
     cursor.execute(query_busca_pgs)
     for (id,PG) in cursor:
-        posto_graduacao_dict[id] = PG
+        id_posto_graduacao_dict[id] = PG
+        posto_graduacao_dict[PG] = id
     cursor.close()
     cnx.close()
 
