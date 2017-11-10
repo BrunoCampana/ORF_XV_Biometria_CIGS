@@ -41,6 +41,18 @@ def get_new_connection():
         print("[!] Um erro ocorreu ao conectar ao banco de dados.")
     return cnx;
 
+def cadastro_novo_usuario(novo_usuario,callback=None):
+    print ("Insira a digital do novo usuário:")
+    if (ler_digital(digital_features) != 1):
+        print ("Cadastro cancelado")
+        return
+    print ("Leitura realizada.")
+    novo_usuario.biometria = digital_features
+    cadastrar_novo_usuario(novo_usuario)
+    if callback is not None:
+        callback()
+
+##Função usada somente pela GUI
 def formulario_usuario():
     novo_usuario = Usuario()
     novo_usuario.nome = input("Nome: ")
@@ -52,8 +64,8 @@ def formulario_usuario():
     novo_usuario.biometria = digital_features
     return novo_usuario
 
-def cadastrar_novo_usuario():
-    novo_usuario = formulario_usuario()
+def cadastrar_novo_usuario(novo_usuario):
+#    novo_usuario = formulario_usuario()
     cnx = get_new_connection()
     cursor = cnx.cursor()
     query_cadastro_usuario = ("INSERT INTO Usuario "
@@ -67,6 +79,7 @@ def cadastrar_novo_usuario():
     cnx.commit()
     cursor.close()
     cnx.close()
+
 
 def buscar_usuario_por_biometria():
     print ("Insira a digital do usuário:")
@@ -238,3 +251,13 @@ def liberar_entrada_saida_manualmente():
         return None
     print ("Autenticação de operador bem-sucedida.")
     buscar_usuario_manualmente()
+
+def retornar_lista_usuarios():
+    cnx = get_new_connection()
+    cursor = cnx.cursor()
+    query_busca_usuarios = ("SELECT id,Cod_PG,nome FROM Usuario ")
+    cursor.execute(query_busca_usuarios)
+    dict_users = {}
+    for (id,Cod_PG,nome) in cursor:
+        dict_users[id_posto_graduacao_dict[Cod_PG] + " " + nome] = id
+    return dict_users
