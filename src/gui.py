@@ -280,7 +280,7 @@ class selecionar_usuario_window(minha_frame):
                             "\nHorário: " + data_obj.strftime('%d-%m-%Y %H:%M:%S')
                 messagebox.showinfo("Sucesso", string_label, icon="info")
 
-                self.close_window()
+                self.finalizar_janela()
 
         def finalizar_janela(self):
                 self.master.destroy()
