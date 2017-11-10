@@ -201,7 +201,7 @@ def obter_tipos_eventos_e_criar_dicionario():
 def obter_tipos_missoes_e_criar_dicionario():
     cnx = get_new_connection()
     cursor = cnx.cursor()
-    query_busca_missoes = ("SELECT * FROM missao")
+    query_busca_missoes = ("SELECT id_missao,nome FROM missao")
     cursor.execute(query_busca_missoes)
     for (id,nome) in cursor:
         missoes_dict[nome] = id
