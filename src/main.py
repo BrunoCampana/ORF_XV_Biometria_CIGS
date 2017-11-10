@@ -1,6 +1,6 @@
 from database_methods import *
 from biometria import iniciar_leitor,finalizar_leitor
-from gui import main_loop
+from gui import *
 
 import sys
 
@@ -41,24 +41,47 @@ def tratar_opcao(option):
     else:
         print ("[!] Opção inválida.")
 
-def main():
-    # Ao iniciar o software, obter do banco de dados as tabelas de TIPO e POSTO_GRADUAÇÃO,
-    # e armazená-las em um dicionário global
-    obter_postos_graduacoes_e_criar_dicionario()
-    obter_tipos_eventos_e_criar_dicionario()
-    obter_missoes_e_criar_dicionario()
 
-    iniciar_leitor()
-    printASCIIArt()
-    # Loop principal
-    while not done:
-        print ("O que voce deseja fazer?")
-        printOptions()
-        option = input("Opção: ")
-        tratar_opcao(option)
+class main_class():
+    def finalizar_janela(self):
+        if isinstance(self.cls.app,ler_digital_window):
+            cancelar_leitura()
+            self.cls.thread_leitura.join()
+            finalizar_leitor()
+        self.root.destroy()
 
-    finalizar_leitor()
+    def main_loop_cli(self):
+        # Ao iniciar o software, obter do banco de dados as tabelas de TIPO e POSTO_GRADUAÇÃO,
+        # e armazená-las em um dicionário global
+        obter_postos_graduacoes_e_criar_dicionario()
+        obter_tipos_eventos_e_criar_dicionario()
+        obter_missoes_e_criar_dicionario()
+
+        iniciar_leitor()
+        printASCIIArt()
+        # Loop principal
+        while not done:
+            print ("O que voce deseja fazer?")
+            printOptions()
+            option = input("Opção: ")
+            tratar_opcao(option)
+
+        finalizar_leitor()
+
+    def main_loop_gui(self):
+        obter_postos_graduacoes_e_criar_dicionario()
+        obter_tipos_eventos_e_criar_dicionario()
+        obter_tipos_missoes_e_criar_dicionario()
+        finalizar_leitor()
+        iniciar_leitor()
+        self.root = Tk()
+        self.root.title("Principal")
+        self.root.geometry("400x300")
+        self.root.protocol("WM_DELETE_WINDOW",self.finalizar_janela)
+        self.cls = main_window(self.root)
+        self.root.mainloop()
+        finalizar_leitor()
 
 if __name__ == "__main__":
-    #main()
-    main_loop()
+    #main_loop_cli()
+    main_class().main_loop_gui()

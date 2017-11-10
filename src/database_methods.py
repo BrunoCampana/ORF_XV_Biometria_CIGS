@@ -82,8 +82,13 @@ def cadastrar_novo_usuario(novo_usuario):
 
 
 def buscar_usuario_por_biometria():
+    usuario =  Usuario()
+
     print ("Insira a digital do usuário:")
-    ler_digital(digital_features)
+    if (ler_digital(digital_features) != 1):
+        print ("Leitura cancelada")
+        usuario.id = -1
+        return usuario
     print ("Leitura realizada.")
 
     cnx = get_new_connection()
@@ -91,8 +96,6 @@ def buscar_usuario_por_biometria():
     #Ignorar usuarios sem biometria
     query_busca_usuarios = ("SELECT * FROM Usuario WHERE Biometria is NOT NULL ")
     cursor.execute(query_busca_usuarios)
-
-    usuario = Usuario()
 
     for (id,nome,Cod_PG,OM,Biometria) in cursor:
         #Código 1: digitais iguais
@@ -166,6 +169,8 @@ def registrar_entrada_saida(callback=None):
     if not usuario.id:
         print ("Nenhum usuario encontrado")
         evento = None
+    elif usuario.id == -1:
+        return usuario
     else:
         print ("Nome encontrado : " + usuario.nome)
         ultimo_tipo_evento = buscar_ultimo_tipo_evento_usuario(usuario.id)

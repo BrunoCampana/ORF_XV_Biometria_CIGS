@@ -5,7 +5,11 @@ from tkinter import *
 from tkinter import messagebox
 from database_methods import *
 
-class main_window():
+class minha_frame():
+    def __init__():
+        pass
+
+class main_window(minha_frame):
         def __init__(self,master):
                 self.master = master
                 self.frame = tk.Frame(master)
@@ -38,9 +42,10 @@ class main_window():
 
         def comando_registrar_entrada_saida(self):
                 #Verifica se já há uma janela aberta, pois o leitor poderia já estar acionado
-                if isinstance(self.app,ler_digital_window) or isinstance(self.app,cadastrar_novo_usuario_window):
+                if isinstance(self.app,minha_frame):
                     self.app.finalizar_janela()
                     if isinstance(self.app,ler_digital_window):
+                        cancelar_leitura()
                         self.thread_leitura.join()
                 self.newWindow = tk.Toplevel(self.master)
                 self.app = ler_digital_window(self.newWindow)
@@ -50,18 +55,28 @@ class main_window():
                 cancelar_leitura()
 
         def comando_cadastrar_novo_usuario(self):
-                if isinstance(self.app,cadastrar_novo_usuario_window) or isinstance(self.app,ler_digital_window):
+                if isinstance(self.app,minha_frame):
                     self.app.finalizar_janela()
                     if isinstance(self.app,ler_digital_window):
+                        cancelar_leitura()
                         self.thread_leitura.join()
                 self.newWindow = tk.Toplevel(self.master)
                 self.app = cadastrar_novo_usuario_window(self.newWindow,self.callback_cadastro_novo_usuario)
 
         def comando_liberar_entrada_saida_manualmente(self):
+                if isinstance(self.app,minha_frame):
+                    self.app.finalizar_janela()
+                    if isinstance(self.app,ler_digital_window):
+                        cancelar_leitura()
+                        self.thread_leitura.join()
                 self.newWindow = tk.Toplevel(self.master)
                 self.app = autenticacao_operador_window(self.newWindow,self.callback_liberacao_usuario_manual)
 
         def comando_sair_do_sistema(self):
+                if isinstance(self.app,ler_digital_window):
+                    cancelar_leitura()
+                    self.thread_leitura.join()
+                    finalizar_leitor()
                 self.master.destroy()
 
         #Os callbacks são chamados para dar continuidade nas tabelas
@@ -77,7 +92,7 @@ class main_window():
                 self.newWindow = tk.Toplevel(self.master)
                 self.app = selecionar_usuario_window(self.newWindow)
 
-class ler_digital_window():
+class ler_digital_window(minha_frame):
         def __init__(self , master):
                 self.master = master
                 self.frame = tk.Frame(master)
@@ -110,7 +125,7 @@ class ler_digital_window():
                 self.newWindow = tk.Toplevel(self.master)
                 self.app = selecionar_missao_window(self.newWindow,usuario,evento,self.finalizar_janela)
 
-class selecionar_missao_window():
+class selecionar_missao_window(minha_frame):
     def __init__(self,master,usuario,evento,callback):
         self.callback = callback
         self.usuario = usuario
@@ -159,7 +174,7 @@ class selecionar_missao_window():
         self.master.destroy()
         self.callback()
 
-class cadastrar_novo_usuario_window():
+class cadastrar_novo_usuario_window(minha_frame):
         def __init__(self , master,callback):
                 self.master = master
                 self.frame = tk.Frame(master)
@@ -207,7 +222,7 @@ class cadastrar_novo_usuario_window():
         def finalizar_janela(self):
             self.master.destroy()
 
-class selecionar_usuario_window():
+class selecionar_usuario_window(minha_frame):
 
         def __init__(self , master):
                 self.dicionario_usuarios = retornar_lista_usuarios()
@@ -241,7 +256,7 @@ class selecionar_usuario_window():
                     self.OBSlbl.pack()
                     self.OBS.pack()
                     self.registrar_button = tk.Button(self.frame, text='Registrar', width = 25, command= self.comando_registrar_evento)
-                    self.cancel_button = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.close_window)
+                    self.cancel_button = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.finalizar_janela)
                     self.registrar_button.pack()
                     self.cancel_button.pack()
                     self.frame.pack()
@@ -267,10 +282,10 @@ class selecionar_usuario_window():
 
                 self.close_window()
 
-        def close_window(self):
+        def finalizar_janela(self):
                 self.master.destroy()
 
-class autenticacao_operador_window():
+class autenticacao_operador_window(minha_frame):
 
         def __init__(self , master,callback):
                 self.master = master
@@ -282,7 +297,7 @@ class autenticacao_operador_window():
                 self.password_text = Label(master, text="Senha:")
                 self.password_guess = Entry(master, show="*")
                 self.attempt_login_button = tk.Button(self.frame, text='Login', width = 25, command= self.try_login)
-                self.cancel_button = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.close_window)
+                self.cancel_button = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.finalizar_janela)
                 self.username_text.pack()
                 self.username_guess.pack()
                 self.password_text.pack()
@@ -292,26 +307,11 @@ class autenticacao_operador_window():
                 self.frame.pack()
 
         def try_login(self):
-            #self.username = ("goi")
-            #self.password = ("123")
             if autenticar_operador(self.username_guess.get(),self.password_guess.get()):
                 self.master.destroy()
                 self.callback()
             else:
                 messagebox.showinfo("Aviso", "Falha na autenticação", icon="warning")
 
-        def close_window(self):
+        def finalizar_janela(self):
                 self.master.destroy()
-
-def main_loop():
-    obter_postos_graduacoes_e_criar_dicionario()
-    obter_tipos_eventos_e_criar_dicionario()
-    obter_tipos_missoes_e_criar_dicionario()
-    iniciar_leitor()
-    root = Tk()
-    root.title("Principal")
-    root.geometry("400x300")
-    cls = main_window(root)
-    root.mainloop()
-    cancelar_leitura()
-    finalizar_leitor()
