@@ -73,15 +73,19 @@ class main_class():
         obter_tipos_eventos_e_criar_dicionario()
         obter_tipos_missoes_e_criar_dicionario()
         finalizar_leitor()
-        iniciar_leitor()
+
+        iRet = iniciar_leitor()
+        if iRet != 1:
+            messagebox.showinfo("Erro", verificar_retorno(iRet), icon="error")
+            return
         self.root = Tk()
         self.root.title("Principal")
-        self.root.geometry("400x300")
+        self.root.geometry("800x600")
         self.root.protocol("WM_DELETE_WINDOW",self.finalizar_janela)
         self.cls = main_window(self.root)
         self.root.mainloop()
         finalizar_leitor()
 
 if __name__ == "__main__":
-    #main_loop_cli()
+    printASCIIArt()
     main_class().main_loop_gui()

@@ -4,6 +4,10 @@ import datetime
 from tkinter import *
 from tkinter import messagebox
 from database_methods import *
+from PIL import Image, ImageTk
+import os
+import csv
+
 
 class minha_frame():
     def __init__():
@@ -15,28 +19,39 @@ class main_window(minha_frame):
                 self.frame = tk.Frame(master)
                 self.master.title("Controle de efetivo na Selva")
                 self.app = None
+                self.img_cigs = ImageTk.PhotoImage(Image.open("../img/cigs.png").resize((150,200), Image.ANTIALIAS))
+                self.panel = Label(self.frame, image = self.img_cigs)
+                self.panel.pack(pady = 30,anchor="c")
                 self.lbl = Label(master , text = "Escolha sua opção:")
-                self.lbl.pack()
+                self.lbl.place(relx=.5, rely=.41, anchor="c")
 
                 self.botao_registrar_entrada_saida = Button(master ,
                                 text = "Registrar entrada ou saída por biometria" ,
-                                command = self.comando_registrar_entrada_saida )
-                self.botao_registrar_entrada_saida.pack()
+                                command = self.comando_registrar_entrada_saida,
+                                height=3,
+                                width=30 )
+                self.botao_registrar_entrada_saida.place(relx=.5, rely=.5, anchor="c")
 
                 self.botao_cadastrar_novo_usuario = Button(master ,
                                                             text="Cadastrar novo usuário",
-                                                            command = self.comando_cadastrar_novo_usuario )
-                self.botao_cadastrar_novo_usuario.pack()
+                                                            command = self.comando_cadastrar_novo_usuario,
+                                                            height=3,
+                                                            width=30 )
+                self.botao_cadastrar_novo_usuario.place(relx=.5, rely=.6, anchor="c")
 
                 self.botao_liberar_entrada_saida_manualmente = Button(master ,
                                     text = "Liberar entrada ou saída manualmente" ,
-                                    command = self.comando_liberar_entrada_saida_manualmente )
-                self.botao_liberar_entrada_saida_manualmente.pack()
+                                    command = self.comando_liberar_entrada_saida_manualmente,
+                                    height=3,
+                                    width=30 )
+                self.botao_liberar_entrada_saida_manualmente.place(relx=.5, rely=.7, anchor="c")
 
                 self.botao_sair_do_sistema = Button(master ,
                                                     text = "Sair do sistema" ,
-                                                    command = self.comando_sair_do_sistema )
-                self.botao_sair_do_sistema.pack()
+                                                    command = self.comando_sair_do_sistema,
+                                                    height=3,
+                                                    width=30 )
+                self.botao_sair_do_sistema.place(relx=.5, rely=.8, anchor="c")
 
                 self.frame.pack()
 
@@ -47,12 +62,11 @@ class main_window(minha_frame):
                     if isinstance(self.app,ler_digital_window):
                         cancelar_leitura()
                         self.thread_leitura.join()
-                self.newWindow = tk.Toplevel(self.master)
+                self.newWindow = tk.Toplevel(self.frame)
                 self.app = ler_digital_window(self.newWindow)
                 self.thread_leitura = threading.Thread(target=registrar_entrada_saida,
                                                     kwargs={'callback': self.app.retorno_busca_biometrica})
                 self.thread_leitura.start()
-                cancelar_leitura()
 
         def comando_cadastrar_novo_usuario(self):
                 if isinstance(self.app,minha_frame):
@@ -60,7 +74,7 @@ class main_window(minha_frame):
                     if isinstance(self.app,ler_digital_window):
                         cancelar_leitura()
                         self.thread_leitura.join()
-                self.newWindow = tk.Toplevel(self.master)
+                self.newWindow = tk.Toplevel(self.frame)
                 self.app = cadastrar_novo_usuario_window(self.newWindow,self.callback_cadastro_novo_usuario)
 
         def comando_liberar_entrada_saida_manualmente(self):
@@ -95,15 +109,14 @@ class main_window(minha_frame):
 class ler_digital_window(minha_frame):
         def __init__(self , master):
                 self.master = master
-                self.frame = tk.Frame(master)
-                self.master.title("Leitura de Impressão digital")
-                self.lbl = Label(master , text = "Insira a impressão digital:")
+                self.master.geometry("240x120")
+                self.master.title("Leitura Biométrica")
+                self.lbl = Label(master , text = "Insira a impressão digital:",pady=10)
                 self.lbl.pack()
                 self.master.protocol("WM_DELETE_WINDOW",self.finalizar_janela)
-                self.quitButton = tk.Button(self.frame, text = 'Cancelar', width = 25 , command = self.finalizar_janela)
-                self.quitButton.pack()
+                self.quitButton = tk.Button(self.master, text = 'Cancelar', width = 25 , command = self.finalizar_janela)
+                self.quitButton.pack(anchor="s",pady=10)
                 self.isDead = False
-                self.frame.pack()
 
 
         def finalizar_janela(self):
@@ -121,6 +134,8 @@ class ler_digital_window(minha_frame):
             elif usuario.id == 0:
                 self.not_found()
                 self.finalizar_janela()
+            elif usuario.id == -1:
+                self.finalizar_janela()
             else:
                 self.newWindow = tk.Toplevel(self.master)
                 self.app = selecionar_missao_window(self.newWindow,usuario,evento,self.finalizar_janela)
@@ -136,7 +151,7 @@ class selecionar_missao_window(minha_frame):
 
         # Converter do formato do MySQL para o formato brasileiro
         data_obj = datetime.datetime.strptime(evento.data, "%Y-%m-%d %H:%M:%S")
-        string_label = id_posto_graduacao_dict[usuario.Cod_PG] + " Nome: " + usuario.nome + \
+        string_label = id_posto_graduacao_dict[usuario.Cod_PG] + " " + usuario.nome + \
                         "\nEvento: " + tipo_evento_dict[evento.id_tipo] + \
                         "\nHorário: " + data_obj.strftime('%d-%m-%Y %H:%M:%S')
 
@@ -177,8 +192,8 @@ class selecionar_missao_window(minha_frame):
 class cadastrar_novo_usuario_window(minha_frame):
         def __init__(self , master,callback):
                 self.master = master
-                self.frame = tk.Frame(master)
-                master.title("Cadastro de novo usuario")
+                self.master.title("Cadastro de novo usuario")
+                self.master.geometry("300x240")
                 self.usernamelbl = Label(master, text="Nome:")
                 self.username = Entry(master)
                 self.variable = tk.StringVar(master)
@@ -186,22 +201,25 @@ class cadastrar_novo_usuario_window(minha_frame):
                 default_str = list(posto_graduacao_dict.keys())[0]
                 self.variable.set(default_str)
                 self.opt = default_str
-                self.PGopt = tk.OptionMenu(master, self.variable, *posto_graduacao_dict,command=self.mudanca_opcao_selecao)
-                self.PGopt.pack()
-                self.OMlbl = Label(master, text="OM:")
+                self.PGlbl = Label(self.master, text="Posto/Graduação:")
+
+                self.PGopt = tk.OptionMenu(self.master, self.variable, *posto_graduacao_dict,command=self.mudanca_opcao_selecao)
+                self.OMlbl = Label(self.master, text="OM:")
                 self.OM = Entry(master)
-                self.cadastrar_button = tk.Button(self.frame, text = 'Cadastrar', width = 25 , command = self.ler_digital_novo_usuario)
-                self.cancel_button = tk.Button(self.frame, text='Cancelar', width = 25, command= self.finalizar_janela)
+                self.cadastrar_button = tk.Button(self.master, text = 'Cadastrar', width = 25 , command = self.ler_digital_novo_usuario)
+                self.cancel_button = tk.Button(self.master, text='Cancelar', width = 25, command= self.finalizar_janela)
 
                 self.callback = callback
 
-                self.usernamelbl.pack()
+                self.usernamelbl.pack(pady=4)
                 self.username.pack()
-                self.OMlbl.pack()
+                self.OMlbl.pack(pady=4)
                 self.OM.pack()
-                self.cadastrar_button.pack()
-                self.cancel_button.pack()
-                self.frame.pack()
+                self.PGlbl.pack(pady=4)
+                self.PGopt.pack()
+
+                self.cadastrar_button.pack(pady=4)
+                self.cancel_button.pack(pady=4)
 
 
         def mudanca_opcao_selecao(self,value):
@@ -215,9 +233,6 @@ class cadastrar_novo_usuario_window(minha_frame):
 
             self.callback(usuario)
             self.master.destroy()
-
-        def retorno_busca_biometrica():
-            pass
 
         def finalizar_janela(self):
             self.master.destroy()

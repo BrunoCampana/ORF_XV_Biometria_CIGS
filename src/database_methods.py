@@ -10,9 +10,9 @@ from ctypes import create_string_buffer
 
 #Arquivo global de configuração
 config = {
-  'user': 'matissek',
-  'password': '1234',
-  'host': '192.168.23.1',
+  'user': 'root',
+  'password': 'U3OkHxQ3M',
+  'host': '127.0.0.1',
   'database': 'Biometria_CIGS',
 }
 
@@ -43,8 +43,9 @@ def get_new_connection():
 
 def cadastro_novo_usuario(novo_usuario,callback=None):
     print ("Insira a digital do novo usuário:")
-    if (ler_digital(digital_features) != 1):
-        print ("Cadastro cancelado")
+    iRet = ler_digital(digital_features)
+    if (iRet != 1):
+        print (verificar_retorno(iRet))
         return
     print ("Leitura realizada.")
     novo_usuario.biometria = digital_features
@@ -59,7 +60,10 @@ def formulario_usuario():
     novo_usuario.Cod_PG = input("Código do Posto/Graduação: ")
     novo_usuario.OM = input("OM: ")
     print ("Insira a digital do novo usuário:")
-    ler_digital(digital_features)
+    iRet = ler_digital(digital_features)
+    if (iRet != 1):
+        print (verificar_retorno(iRet))
+        return
     print ("Leitura realizada.")
     novo_usuario.biometria = digital_features
     return novo_usuario
@@ -85,8 +89,9 @@ def buscar_usuario_por_biometria():
     usuario =  Usuario()
 
     print ("Insira a digital do usuário:")
-    if (ler_digital(digital_features) != 1):
-        print ("Leitura cancelada")
+    iRet = ler_digital(digital_features)
+    if (iRet != 1):
+        print (verificar_retorno(iRet))
         usuario.id = -1
         return usuario
     print ("Leitura realizada.")
