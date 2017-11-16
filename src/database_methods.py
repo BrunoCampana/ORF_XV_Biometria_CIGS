@@ -2,6 +2,7 @@ import mysql.connector
 import datetime
 import getpass
 import hashlib
+from collections import OrderedDict
 
 from biometria import *
 from models import *
@@ -10,9 +11,9 @@ from ctypes import create_string_buffer
 
 #Arquivo global de configuração
 config = {
-  'user': 'root',
-  'password': 'U3OkHxQ3M',
-  'host': '127.0.0.1',
+  'user': 'nome_usuario',
+  'password': 'senha_usuario',
+  'host': 'ip.banco.de.dados',
   'database': 'Biometria_CIGS',
 }
 
@@ -22,12 +23,12 @@ config = {
 digital_features = create_string_buffer(tamanho_buffer_digital)
 # Dicionários globais mapeando strings para IDs
 #P/G e Missões
-posto_graduacao_dict = {}
-missoes_dict = {}
+posto_graduacao_dict = OrderedDict()
+missoes_dict = OrderedDict()
 # Dicionários globais mapeando IDs para strings
 #P/G e Tipos de eventos
-id_posto_graduacao_dict = {}
-tipo_evento_dict = {}
+id_posto_graduacao_dict = OrderedDict()
+tipo_evento_dict = OrderedDict()
 
 def get_new_connection():
     try:
